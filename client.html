@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>TAIL BREAKER</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.1.js"></script>
+    <script src = "/socket.io/socket.io.js"></script>
+    <script src = "/gameCore/background.js"></script>
+    <script>
+			var ratio =1920/1080;
+      // 페이지 온로드 처리
+      $(document).ready(function(e) {
+
+			//윈도우 크기
+			var w_width = $(window).width();
+			var w_height = $(window).height();
+
+			//캔버스 크기
+			var c_height = w_height;
+			var c_width = w_height / ratio;
+
+			var canvas = $("#myCanvas")[0];
+			//var canvas = document.getElementById("myCanvas");
+			canvas.addEventListener("touchstart", touchEvent, false);
+			canvas.addEventListener("touchmove", touchEvent, false);
+			canvas.addEventListener("touchend", touchEvent, false);
+			canvas.addEventListener("mousedown", touchEvent, false);
+			canvas.addEventListener("mouseup", touchEvent, false);
+			canvas.addEventListener("mousemove", touchEvent, false);
+
+			//canvas.addEventListener("mouseover", touchEvent, false);
+
+			var status = startIntro(c_height, c_width);
+
+			$("#myCanvas").width(c_width);
+			$("#myCanvas").height(c_height);
+			$("#wrapper").width(c_width);
+
+			$('html').keydown(function(){
+				on_key_down(event);
+			});
+		});
+
+
+        //
+
+
+    </script>
+    <style>
+		html {
+			-webkit-background-size: cover;
+			-moz-background-size: cover;
+			-o-background-size: cover;
+			background-size: cover;
+		}
+    	#wrapper{margin : 0 auto;}
+    </style>
+</head>
+<body style="margin: 0px">
+
+    <div id="wrapper">
+		<canvas id="myCanvas" width="1080" height="1920"></canvas>
+	</div>
+</body>
+</html>
