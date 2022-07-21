@@ -32,15 +32,13 @@ app.get('/', function (req, res) {
 //var speed = 5;
 //총알 속도
 var bspeed = 10;
-//비행기 회전 속도
-var rotate_speed = 5;
+
 //비행기 정보
 var shipInfo = {};
-var tmp_shipInfo = {};
 
 //총알 정보
 var bullets = {};
-var tmp_bullets={};
+
 //총알 카운트
 var bullet_num = 0;
 
@@ -87,9 +85,7 @@ io.sockets.on('connection', function (socket) {
 			data['old_x'] = position.x;
 			data['old_y'] = position.y;
 
-			//console.log(id);
 			shipInfo[id] = data;
-			//socket.emit('getId',shipInfo);
 			console.log(shipInfo);
 		}
 	});
@@ -102,38 +98,15 @@ io.sockets.on('connection', function (socket) {
 		var yunits = Math.cos(rad) * speed;
 		var xunits = Math.sin(rad) * speed;
 
-		/*console.log(radians);
-		console.log(xunits);
-		console.log(yunits);
-		*/
-		//console.log("X : "+shipInfo[socket.username].x+", Y : "+shipInfo[socket.username].y  );
-
-		//shipInfo[socket.username].old_x = shipInfo[socket.username].x;
-		//shipInfo[socket.username].old_y = shipInfo[socket.username].y;
 		shipInfo[socket.username].angle = degree;
 		shipInfo[socket.username].x = shipInfo[socket.username].x + xunits;
 		shipInfo[socket.username].y = shipInfo[socket.username].y - yunits;
 
 		//벽 충돌 시 지나가지 못하게
-		if(shipInfo[socket.username].x >= 1010 ){
-		//	console.log("right end");
-			shipInfo[socket.username].x = 1010;
-		}
-		else if(shipInfo[socket.username].x <= 25){
-		//	console.log("left end");
-
-			shipInfo[socket.username].x = 25;
-		}
-		if(shipInfo[socket.username].y >= 1510){
-		//	console.log("bottom end");
-
-			shipInfo[socket.username].y = 1510;
-		}
-		else if(shipInfo[socket.username].y <= 300){
-		//	console.log("top end");
-
-			shipInfo[socket.username].y = 300;
-		}
+		if(shipInfo[socket.username].x >= 1010 ) shipInfo[socket.username].x = 1010;
+		else if(shipInfo[socket.username].x <= 25) shipInfo[socket.username].x = 25;
+		if(shipInfo[socket.username].y >= 1510) shipInfo[socket.username].y = 1510; 
+		else if(shipInfo[socket.username].y <= 300) shipInfo[socket.username].y = 300;
 	});
 
 	socket.on('setDegree',function(degree){
@@ -144,18 +117,18 @@ io.sockets.on('connection', function (socket) {
 	// 발사 버튼 누르는 순간 각도 세팅
 	socket.on('setBullet', function(){
 		//총알 오브젝트 갯수 구하기
-		bullets[bullet_num] = ({"name" : socket.username,
-								"angle" : shipInfo[socket.username].angle,
-								"x" : shipInfo[socket.username].x+26,
-								"y" : shipInfo[socket.username].y+29,
-								"old_angle" : shipInfo[socket.username].angle,
-								"old_x" : shipInfo[socket.username].x+26,
-								"old_y" : shipInfo[socket.username].y+29
-								});
+		bullets[bullet_num] = ({
+			"name" : socket.username,
+			"angle" : shipInfo[socket.username].angle,
+			"x" : shipInfo[socket.username].x+26,
+			"y" : shipInfo[socket.username].y+29,
+			"old_angle" : shipInfo[socket.username].angle,
+			"old_x" : shipInfo[socket.username].x+26,
+			"old_y" : shipInfo[socket.username].y+29
+		});
 
 		LoopBullet(bullet_num);
 		bullet_num++;
-
 	});
 
 
@@ -164,7 +137,6 @@ io.sockets.on('connection', function (socket) {
 		var ranX = 0;
 		var ranY = 0;
 		var Pos;
-
 
 		ranX = 		Math.floor( (Math.random() * (850 - 50 + 1)) + 50); //1-10 사이에 난수 발생
 		ranY = 		Math.floor( (Math.random() * (1500 - 300 + 1)) + 300); //1-10 사이에 난수 발생
@@ -196,15 +168,10 @@ io.sockets.on('connection', function (socket) {
 
 			var obj_length = Object.keys(bullets).length;
 			//console.log(obj_length);
-			if(obj_length == 0){
-				bullet_num = 0;
-			}
-			//console.log(bullets);
+			if(obj_length == 0) bullet_num = 0;
 
-		},16);
-
+		}, 16);
 	}
-
 
 	socket.on('play', function(){
 		//console.log(shipInfo);
@@ -213,18 +180,15 @@ io.sockets.on('connection', function (socket) {
 
 	///충돌처리
 	function hitChk(i){
-		//console.log("bullet info : X,"+bullets[i].x+" Y,"+bullets[i].y);
-		if((bullets[i].x >= 1110 || bullets[i].x <= -10) || (bullets[i].y >= 1560 || bullets[i].y <= 310)){
+		
+		if((bullets[i].x >= 1110 || bullets[i].x <= -10) || (bullets[i].y >= 1560 || bullets[i].y <= 310)) {
 			delete bullets[i];
 			clearInterval(fireLoop[i]);
 		}
 		else{
 			for(key in shipInfo){
-				//console.log(key+" info : X,"+shipInfo[key].x+" Y,"+shipInfo[key].y);
-				if(key == socket.username){
-
-				}
-				else{
+				
+				if(key != socket.username){
 					if(( bullets[i].x >= shipInfo[key].x && bullets[i].x <= shipInfo[key].x+58) &&
 						(bullets[i].y >= shipInfo[key].y && bullets[i].y <= shipInfo[key].y+58)){
 						shipInfo[key].hp = shipInfo[key].hp -1;
@@ -232,41 +196,24 @@ io.sockets.on('connection', function (socket) {
 						console.log("now hp : "+shipInfo[key].hp);
 
 						delete bullets[i];
+
 						if(shipInfo[key].hp == 0){
 							shipInfo[socket.username].score = shipInfo[socket.username].score+1;
 							var socket_id = shipInfo[key].socket_id;
 							console.log(socket_id);
 							//특정 클라에게 메세지 보내기
 							//socket->to로 변경됨
-							io.sockets.to(socket_id).emit("gameover",key);
+							io.sockets.to(socket_id).emit("gameover", key);
 							delete shipInfo[key];
-
-							//socket.emit("gameover",key);
-
-
 						}
 
 						clearInterval(fireLoop[i]);
 					}
-
 				}
 			}
 		}
 
 	}
-  	// 클라이언트가 adduser 이벤트를 전송할 경우 처리할 리스너 함수
-	/*socket.on('adduser', function(username){
-		// 이 클라이언트를 위한 소켓 세션에 username이라는 필드에 클라이언트가 전송한 값을 저장한다.
-		// 클라이언트의 username을 사용자 목록을 관리하는 전역 변수인 usernames에 추가한다.
-		usernames[username] = username;
-		// 클라이언트에게 채팅 서버에 접속되었다고 알린다.
-		socket.emit('updatechat', 'SERVER', 'you have connected');
-		// 사용자가 채팅 서버에 추가되었다는 메시지를 전역으로(모든 클라이언트에게) 알린다.
-		socket.broadcast.emit('update', 'SERVER', username + ' has connected');
-		// 채팅을 사용하는 변경된 사용자 목록을 클라이언트에게 업데이트하도록 updateusers 함수를 실행하도록 알린다.
-		io.sockets.emit('updateusers', usernames);
-	});
-	*/
 
 	// 사용자가 접속을 끊을 경우 처리할 리스너 함수
 	socket.on('disconnect', function(){
